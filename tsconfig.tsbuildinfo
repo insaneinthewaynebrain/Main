@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/TabBar.tsx","./src/components/icons.tsx","./src/config/financeRules.ts","./src/finance/calculator.test.ts","./src/finance/calculator.ts","./src/finance/format.ts","./src/hooks/usePersistentState.ts","./src/tools/registry.tsx","./src/tools/carFinance/CarFinanceCalculator.tsx","./vite.config.ts"],"version":"5.9.3"}

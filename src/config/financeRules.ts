@@ -1,0 +1,39 @@
+/**
+ * Finance rules. Change values here — nothing else in the app hard-codes them.
+ */
+export interface FinanceRules {
+  productName: string;
+  maxTermMonths: number;
+  minTermMonths: number;
+  maxCarAgeAtEndMonths: number;
+  apr: number;
+  deposit: { min: number; max: number; step: number; default: number };
+  defaultRegistration: { month: number; year: number };
+  registrationYearsBack: number;
+}
+
+export const financeRules: FinanceRules = {
+  /** Product type shown in the UI. */
+  productName: 'Hire purchase',
+
+  /** Longest agreement offered, in months. */
+  maxTermMonths: 60,
+
+  /** Shortest agreement worth offering. Below this the car is "not eligible". */
+  minTermMonths: 12,
+
+  /** The car may be at most this many months old when the agreement ends. */
+  maxCarAgeAtEndMonths: 96,
+
+  /** Fixed APR as a decimal (0.099 = 9.9%). Displayed, not editable. */
+  apr: 0.099,
+
+  /** Deposit dropdown: from, to and step in £, plus the default selection. */
+  deposit: { min: 0, max: 10_000, step: 500, default: 1_000 },
+
+  /** Default registration date (month is 1–12). Treated as the 1st of the month. */
+  defaultRegistration: { month: 10, year: 2023 },
+
+  /** How many years back the registration year dropdown goes. */
+  registrationYearsBack: 12,
+};
