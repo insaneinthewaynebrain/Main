@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
 import { readFileSync } from 'node:fs';
 
-const svg = readFileSync(new URL('../public/icon.svg', import.meta.url), 'utf8');
+const svg = readFileSync(new URL('../app/public/icon.svg', import.meta.url), 'utf8');
 const sizes = { 'icon-192.png': 192, 'icon-512.png': 512, 'apple-touch-icon.png': 180 };
 
 const browser = await chromium.launch();

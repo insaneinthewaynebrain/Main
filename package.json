@@ -8,7 +8,8 @@
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "deploy": "npm run build && node scripts/deploy.mjs"
   },
   "repository": {
     "type": "git",
