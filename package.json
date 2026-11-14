@@ -1,5 +1,5 @@
 {
-  "name": "car-finance-tools",
+  "name": "hp-calc",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -13,13 +13,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/insaneinthewaynebrain/Main.git"
+    "url": "git+https://github.com/insaneinthewaynebrain/hp-calc.git"
   },
   "author": "",
   "bugs": {
-    "url": "https://github.com/insaneinthewaynebrain/Main/issues"
+    "url": "https://github.com/insaneinthewaynebrain/hp-calc/issues"
   },
-  "homepage": "https://github.com/insaneinthewaynebrain/Main#readme",
+  "homepage": "https://github.com/insaneinthewaynebrain/hp-calc#readme",
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

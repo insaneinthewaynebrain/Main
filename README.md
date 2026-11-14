@@ -1,4 +1,4 @@
-# Car Finance
+# HP Calc
 
 Personal, mobile-first car finance tools. Vite + React + TypeScript, installable as a PWA.
 
@@ -15,7 +15,7 @@ npm run deploy     # build, then copy the site to the repo root for GitHub Pages
 
 ## Publishing (GitHub Pages)
 
-Live at **https://insaneinthewaynebrain.github.io/Main/**. Pages serves this branch's root folder
+Live at **https://insaneinthewaynebrain.github.io/hp-calc/**. Pages serves this branch's root folder
 as-is (no build step), so the root holds the *built* site: `index.html`, `assets/`, `sw.js`,
 `manifest.webmanifest` and icons. **Don't edit those by hand.** Change the source in `app/`, then:
 
@@ -24,7 +24,7 @@ npm run deploy
 git add -A && git commit -m "Publish" && git push
 ```
 
-All paths are relative (`base: './'` in `vite.config.ts`), so the site works from the `/Main/` sub-folder.
+All paths are relative (`base: './'` in `vite.config.ts`), so the site works from the `/hp-calc/` sub-folder.
 
 ## Where things live
 
@@ -51,5 +51,5 @@ All paths are relative (`base: './'` in `vite.config.ts`), so the site works fro
 
 ## Installing on iPhone
 
-Open https://insaneinthewaynebrain.github.io/Main/ in Safari → Share → **Add to Home Screen**.
+Open https://insaneinthewaynebrain.github.io/hp-calc/ in Safari → Share → **Add to Home Screen**.
 Icons are generated from `app/public/icon.svg` with `npm run icons` (needs Playwright).

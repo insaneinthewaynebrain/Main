@@ -5,10 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // Source lives in app/. `npm run build` writes the site to dist/, and
 // `npm run deploy` copies it to the repository root, which GitHub Pages serves
-// from https://insaneinthewaynebrain.github.io/Main/.
+// from https://insaneinthewaynebrain.github.io/hp-calc/.
 //
 // base: './' makes every asset, the manifest and the service worker use
-// relative URLs, so the site works from the /Main/ sub-folder (or any other).
+// relative URLs, so the site works from the /hp-calc/ sub-folder (or any other).
 export default defineConfig({
   root: 'app',
   base: './',
