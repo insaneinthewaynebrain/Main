@@ -53,3 +53,16 @@ All paths are relative (`base: './'` in `vite.config.ts`), so the site works fro
 
 Open https://insaneinthewaynebrain.github.io/hp-calc/ in Safari → Share → **Add to Home Screen**.
 Icons are generated from `app/public/icon.svg` with `npm run icons` (needs Playwright).
+
+## Screen sizes
+
+The layout adapts automatically (all in `app/src/styles.css`, no device detection), and switches live
+when a phone is rotated, folded or unfolded:
+
+- **Under 360px wide** (small or outer screens): tighter spacing.
+- **Phones**: single column.
+- **680px and wider** (unfolded foldables, tablets, landscape): two columns, payment on the left.
+- **Landscape phones**: two columns with a compact header.
+- **Foldables that report a hinge** (Viewport Segments API): one column per screen half, kept off the hinge.
+
+The monthly payment's font size scales to the card width so long figures always fit on one line.

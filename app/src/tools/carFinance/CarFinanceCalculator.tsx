@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 import { financeRules } from '../../config/financeRules';
 import { calculateQuote, depositOptions, type Quote } from '../../finance/calculator';
 import { formatAge, formatGBP, formatGBPWhole, formatPercent, MONTH_NAMES, parseMoney } from '../../finance/format';
@@ -125,10 +125,13 @@ function ResultCard({ quote }: { quote: Quote }) {
     );
   }
 
+  const payment = formatGBP(quote.monthlyPayment);
   return (
     <section className="card result" aria-live="polite">
       <p className="result-label">Monthly payment</p>
-      <p className="result-payment">{formatGBP(quote.monthlyPayment)}</p>
+      <p className="result-payment" style={{ '--chars': payment.length } as CSSProperties}>
+        {payment}
+      </p>
       <dl className="breakdown">
         <div>
           <dt>Term</dt>
