@@ -4,11 +4,13 @@
  * Accepts `initialUrl` so a future iOS share-sheet target can open it pre-filled.
  */
 import { useEffect, useId, useState } from 'react';
+import { useLinkPreview, looksLikeUrl } from '../../hooks/useLinkPreview';
+import { priceFromText, recordPrice, siteFromUrl } from '../../domain/shortlist/priceHistory';
+import { todayISO } from '../../domain/dates';
 import Sheet from '../../components/Sheet';
 import PlateInput from '../../components/PlateInput';
-import { fetchLinkPreview, lookupProblem, lookupRegistration } from '../../api/client';
+import { lookupProblem, lookupRegistration } from '../../api/client';
 import { isValidRegistration, normaliseRegistration } from '../../domain/vehicle/registration';
-import type { LinkPreview } from '../../domain/vehicle/types';
 import { financeRules } from '../../config/financeRules';
 import { parseMoney } from '../../lib/format';
 import { newShortlistItem, saveShortlistItem, type ShortlistItem } from '../../storage/shortlist';
@@ -21,30 +23,22 @@ interface Props {
   onAdded: (item: ShortlistItem, note?: string) => void;
 }
 
-const looksLikeUrl = (s: string) => /^https?:\/\/\S+\.\S+/i.test(s.trim());
 
 export default function AddByLink({ initialUrl = '', onClose, onAdded }: Props) {
   const ids = { url: useId(), price: useId() };
   const [url, setUrl] = useState(initialUrl);
-  const [preview, setPreview] = useState<LinkPreview>();
-  const [previewFor, setPreviewFor] = useState('');
-  const [loadingPreview, setLoadingPreview] = useState(false);
   const [plate, setPlate] = useState('');
   const [priceText, setPriceText] = useState('');
   const [saving, setSaving] = useState(false);
 
   const trimmed = url.trim();
+  const { preview, loading: loadingPreview } = useLinkPreview(trimmed);
+  // Fill the asking price from the advert title when it has one.
+  const titlePrice = priceFromText(preview?.title);
   useEffect(() => {
-    if (!looksLikeUrl(trimmed) || trimmed === previewFor) return;
-    const t = setTimeout(async () => {
-      setLoadingPreview(true);
-      setPreviewFor(trimmed);
-      const r = await fetchLinkPreview(trimmed);
-      setLoadingPreview(false);
-      setPreview(r.ok ? r.data : { url: trimmed, blocked: true });
-    }, 400);
-    return () => clearTimeout(t);
-  }, [trimmed, previewFor]);
+    if (titlePrice && !priceText) setPriceText(String(titlePrice));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [titlePrice]);
 
   const reg = normaliseRegistration(plate);
   const canSave = looksLikeUrl(trimmed) || isValidRegistration(reg);
@@ -56,8 +50,12 @@ export default function AddByLink({ initialUrl = '', onClose, onAdded }: Props) 
       advertUrl: looksLikeUrl(trimmed) ? trimmed : undefined,
       advertTitle: preview?.title,
       advertImageUrl: preview?.imageUrl,
-      advertSite: preview?.siteName,
+      advertSite: preview?.siteName ?? siteFromUrl(trimmed),
       askingPrice: parseMoney(priceText) > 0 ? parseMoney(priceText) : undefined,
+      priceHistory:
+        parseMoney(priceText) > 0
+          ? recordPrice([], { date: todayISO(), price: parseMoney(priceText), site: preview?.siteName ?? siteFromUrl(trimmed), url: looksLikeUrl(trimmed) ? trimmed : undefined })
+          : undefined,
       deposit: financeRules.deposit.default,
       reg: isValidRegistration(reg) ? reg : undefined,
     });

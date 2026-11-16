@@ -17,6 +17,10 @@ import { resizePhoto } from '../../lib/image';
 import { useBlobUrl } from '../../hooks/useShortlist';
 import { deleteShortlistItem, saveShortlistItem, type ShortlistItem } from '../../storage/shortlist';
 import LinkPreviewBox from './LinkPreviewBox';
+import PriceHistory from './PriceHistory';
+import PriceInput from '../../components/PriceInput';
+import { recordPrice, siteFromUrl } from '../../domain/shortlist/priceHistory';
+import { todayISO } from '../../domain/dates';
 import { evaluateItem, itemName } from './mapping';
 
 const DEPOSITS = depositOptions();
@@ -28,7 +32,7 @@ interface Props {
 
 export default function ShortlistEditor({ item: initial, onClose }: Props) {
   const nav = useAppNav();
-  const ids = { price: useId(), deposit: useId(), term: useId(), url: useId(), notes: useId(), list: useId() };
+  const ids = { deposit: useId(), term: useId(), url: useId(), notes: useId() };
   const [item, setItem] = useState(initial);
   const [plate, setPlate] = useState(initial.reg ? formatRegistration(initial.reg) : '');
   const [priceText, setPriceText] = useState(initial.askingPrice ? String(initial.askingPrice) : '');
@@ -140,24 +144,24 @@ export default function ShortlistEditor({ item: initial, onClose }: Props) {
           {note && <p className="note">{note}</p>}
         </div>
 
+        <PriceInput
+          label="Asking price"
+          value={priceText}
+          onChange={setPriceText}
+          onCommit={(t) => {
+            const n = parseMoney(t);
+            const price = Number.isFinite(n) && n > 0 ? n : undefined;
+            if (price === item.askingPrice) return;
+            update({
+              askingPrice: price,
+              priceHistory: price
+                ? recordPrice(item.priceHistory, { date: todayISO(), price, site: item.advertSite ?? siteFromUrl(item.advertUrl), url: item.advertUrl })
+                : item.priceHistory,
+            });
+          }}
+        />
+
         <div className="row">
-          <div className="field">
-            <label htmlFor={ids.price}>Asking price</label>
-            <div className="money-input">
-              <span aria-hidden="true">£</span>
-              <input
-                id={ids.price}
-                inputMode="decimal"
-                value={priceText}
-                onChange={(e) => {
-                  const t = e.target.value.replace(/[^\d.,]/g, '');
-                  setPriceText(t);
-                  const n = parseMoney(t);
-                  update({ askingPrice: Number.isFinite(n) && n > 0 ? n : undefined });
-                }}
-              />
-            </div>
-          </div>
           <div className="field">
             <label htmlFor={ids.deposit}>Deposit</label>
             <select id={ids.deposit} value={item.deposit} onChange={(e) => update({ deposit: Number(e.target.value) })}>
@@ -166,21 +170,20 @@ export default function ShortlistEditor({ item: initial, onClose }: Props) {
               ))}
             </select>
           </div>
-        </div>
-
-        <div className="field">
-          <label htmlFor={ids.term}>Term</label>
-          <select
-            id={ids.term}
-            value={term || ''}
-            disabled={terms.length === 0}
-            onChange={(e) => update({ requestedTermMonths: Number(e.target.value) === maxTerm ? undefined : Number(e.target.value) })}
-          >
-            {terms.length === 0 && <option value="">—</option>}
-            {terms.map((t) => (
-              <option key={t} value={t}>{t === maxTerm ? `${t} months (max)` : `${t} months`}</option>
-            ))}
-          </select>
+          <div className="field">
+            <label htmlFor={ids.term}>Term</label>
+            <select
+              id={ids.term}
+              value={term || ''}
+              disabled={terms.length === 0}
+              onChange={(e) => update({ requestedTermMonths: Number(e.target.value) === maxTerm ? undefined : Number(e.target.value) })}
+            >
+              {terms.length === 0 && <option value="">—</option>}
+              {terms.map((t) => (
+                <option key={t} value={t}>{t === maxTerm ? `${t} mo (max)` : `${t} months`}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {ev.ved?.status === 'ok' && ev.ved.supplementRelevant && (
@@ -211,6 +214,11 @@ export default function ShortlistEditor({ item: initial, onClose }: Props) {
           {item.advertUrl && (
             <LinkPreviewBox url={item.advertUrl} preview={{ url: item.advertUrl, title: item.advertTitle, siteName: item.advertSite, blocked: !item.advertTitle }} />
           )}
+        </div>
+
+        <div className="field">
+          <span className="field-label">Price history</span>
+          <PriceHistory history={item.priceHistory} />
         </div>
 
         <div className="field">

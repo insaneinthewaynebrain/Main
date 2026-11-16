@@ -4,6 +4,7 @@
  */
 import type { ISODate } from '../domain/dates';
 import type { ManualRegistrationDate } from '../domain/vehicle/registrationDate';
+import type { PricePoint } from '../domain/shortlist/priceHistory';
 import type { DvlaVehicle, MotVehicle } from '../domain/vehicle/types';
 
 export interface ShortlistItem {
@@ -21,6 +22,8 @@ export interface ShortlistItem {
   /** Photo picked from the camera roll (resized). */
   photo?: Blob;
   askingPrice?: number;
+  /** Asking prices seen over time, with the site. */
+  priceHistory?: PricePoint[];
   deposit: number;
   requestedTermMonths?: number;
   /** Snapshot of the last lookup, so cards work offline. */

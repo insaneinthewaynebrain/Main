@@ -23,16 +23,30 @@ export default function ShortlistScreen() {
   const [selected, setSelected] = useState<string[]>([]);
   const [comparing, setComparing] = useState(false);
   const [toast, setToast] = useState<string>();
+  const [query, setQuery] = useState('');
 
-  // A link shared into the app opens "Add by link" pre-filled.
+  // A link shared into the app opens "Add by link" pre-filled;
+  // "On shortlist" on the Check tab opens that card.
   useEffect(() => {
     if (nav.pendingShare) {
       setAdding({ url: nav.pendingShare.url });
       nav.clearPendingShare();
     }
+    if (nav.pendingOpenId) {
+      setOpenId(nav.pendingOpenId);
+      nav.clearPendingOpen();
+    }
   }, [nav]);
 
-  const shown = items.filter((i) => (filter === 'favourites' ? i.favourite : filter === 'active' ? !i.ruledOut : true));
+  const q = query.trim().toLowerCase().replace(/\s+/g, '');
+  const shown = items
+    .filter((i) => (filter === 'favourites' ? i.favourite : filter === 'active' ? !i.ruledOut : true))
+    .filter((i) =>
+      !q ||
+      [i.reg, i.make, i.model, i.advertTitle, i.advertSite, i.notes]
+        .filter(Boolean)
+        .some((t) => t!.toLowerCase().replace(/\s+/g, '').includes(q)),
+    );
   const open = items.find((i) => i.id === openId);
   const toCompare = selected.map((id) => items.find((i) => i.id === id)).filter((i): i is ShortlistItem => !!i);
 
@@ -84,6 +98,18 @@ export default function ShortlistScreen() {
           ))}
         </div>
       )}
+
+      {items.length > 2 && (
+        <input
+          className="search-input"
+          type="search"
+          placeholder="Search reg, make, model, site, notes"
+          aria-label="Search shortlist"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      )}
+      {q && shown.length === 0 && <p className="muted">No cars match “{query}”.</p>}
 
       {error && <p className="note note--warn">{error}</p>}
 

@@ -8,6 +8,11 @@ export interface AppNav {
   goTo(toolId: string): void;
   /** Load a shortlist car into the Check screen and switch to it. */
   openInCheck(item: ShortlistItem): void;
+  /** Switch to the Shortlist and open one card. */
+  openShortlistItem(id: string): void;
+  /** Card waiting to be opened on the Shortlist tab. */
+  pendingOpenId?: string;
+  clearPendingOpen(): void;
   /** A link shared into the app (future iOS share sheet), waiting to be added. */
   pendingShare?: { url: string; text?: string };
   clearPendingShare(): void;
@@ -16,6 +21,8 @@ export interface AppNav {
 export const AppNavContext = createContext<AppNav>({
   goTo: () => {},
   openInCheck: () => {},
+  openShortlistItem: () => {},
+  clearPendingOpen: () => {},
   clearPendingShare: () => {},
 });
 

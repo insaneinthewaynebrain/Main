@@ -2,7 +2,8 @@
  * Converting between the Check screen and shortlist cards, and evaluating cards.
  */
 import type { CheckState } from '../../hooks/useCheckState';
-import { defaultCheckState } from '../../hooks/useCheckState';
+import { blankCheckState, completeManual } from '../../hooks/useCheckState';
+import { recordPrice, siteFromUrl } from '../../domain/shortlist/priceHistory';
 import { evaluateCar, type CarEvaluation } from '../../domain/evaluate';
 import { todayISO } from '../../domain/dates';
 import { formatRegistration } from '../../domain/vehicle/registration';
@@ -27,9 +28,21 @@ export function itemFromCheck(state: CheckState, existing?: ShortlistItem): Shor
     lookupAt: lk?.at ?? base.lookupAt,
     mock: lk?.mock ?? base.mock,
     askingPrice: num(state.priceText),
+    priceHistory: num(state.priceText)
+      ? recordPrice(base.priceHistory, {
+          date: todayISO(),
+          price: num(state.priceText)!,
+          site: state.advertSite ?? siteFromUrl(state.advertUrl),
+          url: state.advertUrl || undefined,
+        })
+      : base.priceHistory,
+    advertUrl: state.advertUrl || base.advertUrl,
+    advertTitle: state.advertUrl ? state.advertTitle : base.advertTitle,
+    advertImageUrl: state.advertUrl ? state.advertImageUrl : base.advertImageUrl,
+    advertSite: state.advertUrl ? (state.advertSite ?? siteFromUrl(state.advertUrl)) : base.advertSite,
     deposit: state.deposit,
     requestedTermMonths: state.requestedTerm,
-    manualRegistration: state.manualOn || !lk ? state.manual : undefined,
+    manualRegistration: state.manualOn || !lk ? completeManual(state.manual) : undefined,
     manualFuelType: state.manualFuel || undefined,
     manualCo2: num(state.manualCo2Text),
     manualEngineCc: num(state.manualEngineText),
@@ -40,7 +53,7 @@ export function itemFromCheck(state: CheckState, existing?: ShortlistItem): Shor
 }
 
 export function checkFromItem(item: ShortlistItem): CheckState {
-  const d = defaultCheckState();
+  const d = blankCheckState();
   const hasLookup = !!(item.vehicle || item.mot);
   return {
     ...d,
@@ -53,13 +66,17 @@ export function checkFromItem(item: ShortlistItem): CheckState {
     requestedTerm: item.requestedTermMonths,
     agreementStart: item.agreementStart ?? '',
     manualOn: !!item.manualRegistration && hasLookup,
-    manual: item.manualRegistration ?? d.manual,
+    manual: item.manualRegistration ?? {},
     manualFuel: item.manualFuelType ?? '',
     manualCo2Text: item.manualCo2 ? String(item.manualCo2) : '',
     manualEngineText: item.manualEngineCc ? String(item.manualEngineCc) : '',
     listPriceText: item.listPrice ? String(item.listPrice) : '',
     overThreshold: !!item.overThresholdWhenNew,
     shortlistId: item.id,
+    advertUrl: item.advertUrl ?? '',
+    advertTitle: item.advertTitle,
+    advertImageUrl: item.advertImageUrl,
+    advertSite: item.advertSite,
   };
 }
 

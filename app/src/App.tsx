@@ -12,6 +12,7 @@ export default function App() {
   const [pendingShare, setPendingShare] = useState(() => readSharedLink(window.location.href));
   const [activeId, setActiveId] = usePersistentState('activeTool', pendingShare ? 'shortlist' : tools[0].id);
   const [checkVersion, setCheckVersion] = useState(0);
+  const [pendingOpenId, setPendingOpenId] = useState<string>();
   const active = tools.find((t) => t.id === (pendingShare ? 'shortlist' : activeId)) ?? tools[0];
 
   const nav = useMemo<AppNav>(
@@ -26,6 +27,13 @@ export default function App() {
         setActiveId('check');
         window.scrollTo({ top: 0 });
       },
+      openShortlistItem: (id) => {
+        setPendingOpenId(id);
+        setActiveId('shortlist');
+        window.scrollTo({ top: 0 });
+      },
+      pendingOpenId,
+      clearPendingOpen: () => setPendingOpenId(undefined),
       pendingShare,
       clearPendingShare: () => {
         setPendingShare(undefined);
@@ -33,7 +41,7 @@ export default function App() {
         clearSharedLinkFromAddressBar();
       },
     }),
-    [pendingShare, setActiveId],
+    [pendingShare, pendingOpenId, setActiveId],
   );
 
   return (

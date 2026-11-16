@@ -8,6 +8,8 @@ import type { LookupResult } from '../api/client';
 import type { ManualRegistrationDate } from '../domain/vehicle/registrationDate';
 import { usePersistentState } from './usePersistentState';
 
+export type CheckSection = 'finance' | 'mot' | 'tax' | 'advert';
+
 export interface CheckState {
   plateText: string;
   lookup?: LookupResult;
@@ -19,45 +21,48 @@ export interface CheckState {
   agreementStart: string;
   /** Use the manual registration date even when a lookup has one. */
   manualOn: boolean;
-  manual: ManualRegistrationDate;
+  /** Blank until the user picks a month and year. */
+  manual: Partial<ManualRegistrationDate>;
   manualFuel: string;
   manualCo2Text: string;
   manualEngineText: string;
   listPriceText: string;
   overThreshold: boolean;
-  /** Shortlist card this came from, if any. */
+  /** Advert this car came from. */
+  advertUrl: string;
+  advertTitle?: string;
+  advertImageUrl?: string;
+  advertSite?: string;
+  /** Shortlist card this car is linked to, if any. */
   shortlistId?: string;
+  /** Which section tab is open. */
+  section: CheckSection;
 }
 
 const KEY = 'check:v2';
 
-function legacy<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(`carfin:${key}`);
-    return raw === null ? fallback : (JSON.parse(raw) as T);
-  } catch {
-    return fallback;
-  }
-}
-
-export function defaultCheckState(): CheckState {
+/** A completely blank Check screen (what "Clear" gives you). */
+export function blankCheckState(): CheckState {
   return {
     plateText: '',
-    // Carry over values from the original calculator.
-    priceText: legacy('price', ''),
-    deposit: legacy('deposit', financeRules.deposit.default),
+    priceText: '',
+    deposit: financeRules.deposit.default,
     agreementStart: '',
     manualOn: false,
-    manual: {
-      year: legacy('regYear', financeRules.defaultRegistration.year),
-      month: legacy('regMonth', financeRules.defaultRegistration.month),
-    },
+    manual: {},
     manualFuel: '',
     manualCo2Text: '',
     manualEngineText: '',
     listPriceText: '',
     overThreshold: false,
+    advertUrl: '',
+    section: 'finance',
   };
+}
+
+/** Manual date only counts once month and year are both chosen. */
+export function completeManual(m: Partial<ManualRegistrationDate>): ManualRegistrationDate | undefined {
+  return m.year && m.month ? { year: m.year, month: m.month, day: m.day } : undefined;
 }
 
 export function writeCheckState(state: CheckState): void {
@@ -69,7 +74,8 @@ export function writeCheckState(state: CheckState): void {
 }
 
 export function useCheckState() {
-  const [state, setState] = usePersistentState<CheckState>(KEY, defaultCheckState());
+  const [state, setState] = usePersistentState<CheckState>(KEY, blankCheckState());
   const patch = useCallback((p: Partial<CheckState>) => setState((s) => ({ ...s, ...p })), [setState]);
-  return [{ ...defaultCheckState(), ...state }, patch, setState] as const;
+  const clear = useCallback(() => setState(blankCheckState()), [setState]);
+  return [{ ...blankCheckState(), ...state }, patch, clear] as const;
 }

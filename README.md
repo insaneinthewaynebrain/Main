@@ -6,7 +6,27 @@ Personal, mobile-first car finance app. Vite + React + TypeScript, installable a
   road tax estimate, clean air zone check, and the hire purchase calculator with the term set
   automatically from the car's age.
 - **Shortlist tab**: saved cars (on your phone only) with advert link, photo, notes, favourite / ruled out,
-  and a side-by-side compare view.
+  price history, search, and a side-by-side compare view.
+
+### Features added in round 3
+
+- **Advert links**: paste the advert on the Check tab (Advert section) or with "Add by link". It's saved with
+  the car; looking the same registration up again reconnects it to its card. Every shortlist card has an
+  "Advert ↗" button, and the shortlist can be searched by reg, make, model, site or notes.
+- **Price history**: each asking price you save is recorded with the date and website, e.g.
+  "16 Nov 2026 — £13,995 · autotrader.co.uk", with ▼/▲ changes. If an advert title includes a £ price, it's
+  offered as the asking price.
+  *Other people's past sale prices* (as shown by some paid checks) come from commercial advert-history data
+  providers; there's no free official source, so this app only records prices you've seen.
+- **What might need fixing**: MOT advisories/defects are matched to the likely part or repair
+  (`app/src/config/repairParts.ts`) with links to live prices for that make and model (eBay parts, Google
+  repair costs). No prices are invented by the app.
+- **Car picture**: a Wikipedia photo of the model when one is found (colour may differ, credited), otherwise an
+  illustration in the car's listed colour. Exact-colour photos need a paid image service.
+- **Quick prices**: £16.5k–£19k buttons plus −/+ £100 (`quickPrices` / `priceStep` in `financeRules.ts`).
+- **Clear all** resets the whole Check screen, including the registration date.
+- **Layout**: payment first, then a car card with key facts and actions, then Finance / MOT / Tax & ULEZ /
+  Advert sections. Two columns from 680px; a side navigation rail from 900px.
 
 ## Run it on a computer
 

@@ -12,6 +12,10 @@ export interface FinanceRules {
   /** APR is fixed; there are no fees. */
   fees: number;
   registrationYearsBack: number;
+  /** One-tap car price buttons (£). */
+  quickPrices: number[];
+  /** Step for the − / + price buttons (£). */
+  priceStep: number;
 }
 
 export const financeRules: FinanceRules = {
@@ -41,4 +45,7 @@ export const financeRules: FinanceRules = {
 
   /** How many years back the manual registration year dropdown goes. */
   registrationYearsBack: 30,
+
+  quickPrices: [16_500, 17_000, 17_500, 18_000, 18_500, 19_000],
+  priceStep: 100,
 };
