@@ -25,3 +25,15 @@ export function formatAge(months: number): string {
   if (m || !y) parts.push(`${m} month${m === 1 ? '' : 's'}`);
   return parts.join(' ');
 }
+
+export const formatMiles = (n: number) => `${Math.round(n).toLocaleString('en-GB')} mi`;
+
+/** "TOYOTA" → "Toyota", "YARIS DESIGN" → "Yaris Design" (keeps short codes like "BMW", "ST"). */
+export function titleCase(text?: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .split(/(\s+|-)/)
+    .map((w) => (/^(bmw|vw|mg|ds|gt|st|rs|tdi|tsi|gti|ev|amg|suv|se|xdrive|m)$/i.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join('');
+}

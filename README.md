@@ -1,68 +1,134 @@
 # HP Calc
 
-Personal, mobile-first car finance tools. Vite + React + TypeScript, installable as a PWA.
+Personal, mobile-first car finance app. Vite + React + TypeScript, installable as a PWA.
 
-## Run
+- **Check tab**: type a registration → DVLA + MOT lookup → vehicle card, MOT traffic light, MOT history,
+  road tax estimate, clean air zone check, and the hire purchase calculator with the term set
+  automatically from the car's age.
+- **Shortlist tab**: saved cars (on your phone only) with advert link, photo, notes, favourite / ruled out,
+  and a side-by-side compare view.
+
+## Run it on a computer
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (also on your LAN, for testing on a phone)
-npm test           # unit tests for the finance maths
-npm run build      # production build in dist/ (with service worker)
-npm run preview    # serve the production build
-npm run deploy     # build, then copy the site to the repo root for GitHub Pages
+npm run dev        # http://localhost:5173 — mock mode (sample cars) when no keys are set
+npm test           # unit tests
+npm run build      # production build in dist/ (what Netlify publishes)
 ```
 
-## Publishing (GitHub Pages)
+### Mock mode (works without any keys)
 
-Live at **https://insaneinthewaynebrain.github.io/hp-calc/**. Pages serves this branch's root folder
-as-is (no build step), so the root holds the *built* site: `index.html`, `assets/`, `sw.js`,
-`manifest.webmanifest` and icons. **Don't edit those by hand.** Change the source in `app/`, then:
+With no `DVLA_API_KEY`, `npm run dev` uses sample cars:
 
-```bash
-npm run deploy
-git add -A && git commit -m "Publish" && git push
-```
+| Registration | What it shows |
+| --- | --- |
+| `MK22 GRN` | Green MOT; registered 14 Jul 2022 → max term 44 months (the worked example) |
+| `AM21 BER` | Amber: MOT expires within 60 days, same advisory two years running |
+| `RD20 FLT` | Red: major sill corrosion, mileage went backwards, outstanding recall |
+| `EV25 ECS` | Electric, no MOT due yet, likely expensive car supplement |
+| `NO24 MOT` | DVLA record but no MOT record |
+| `OL14 DSL` | 2014 diesel: not eligible for finance, not ULEZ compliant |
+| `R123 ABC` | 1998 car: DVLA month only ("approx"), pre-2001 tax |
+| `SV19 DWN` / `RL19 MIT` | Pretend "service unavailable" / "rate limited" |
+| anything else | "Registration not found" |
 
-All paths are relative (`base: './'` in `vite.config.ts`), so the site works from the `/hp-calc/` sub-folder.
+Advert links get a clearly labelled sample preview in mock mode.
 
-## Where things live
+## Netlify (you do this part)
+
+`netlify.toml` already tells Netlify how to build (`npm run build`), what to publish (`dist`) and where the
+server functions are (`netlify/functions`). Steps, one at a time:
+
+1. In Netlify, choose **Add new site → Import an existing project → GitHub**, and pick **hp-calc**.
+2. Choose the branch `claude/car-finance-calculator-pwa-iin3sp` (or `main` once it's merged). Leave the
+   build settings as Netlify fills them in from `netlify.toml`.
+3. Before (or right after) the first deploy, open **Site configuration → Environment variables** and add
+   each name below with its value. Type the values only into Netlify — never into chat, code or GitHub.
+4. Redeploy (**Deploys → Trigger deploy**) so the functions pick up the variables.
+5. Open the Netlify address in Safari on your iPhone, look up a car, and enter your passcode once.
+6. Share → **Add to Home Screen** from the Netlify address. (Delete the old GitHub Pages icon.)
+
+### Environment variables
+
+| Name | What it is |
+| --- | --- |
+| `APP_PASSCODE` | A passcode you choose; you type it once on your phone |
+| `DVLA_API_KEY` | DVLA Vehicle Enquiry Service key |
+| `MOT_CLIENT_ID` | From the DVSA email |
+| `MOT_CLIENT_SECRET` | From the DVSA email (expires every 2 years — DVSA emails you first) |
+| `MOT_API_KEY` | From the DVSA email (revoked if unused for 90 days) |
+| `MOT_SCOPE_URL` | From the DVSA email |
+| `MOT_TOKEN_URL` | From the DVSA email (a login.microsoftonline.com address) |
+| `MOCK_MODE` | Optional: `1` forces sample cars even with keys |
+
+`.env.example` lists the same names. To try real lookups on a computer, copy it to `.env` and fill it in —
+`.env` is git-ignored and never committed.
+
+## Keeping it up to date
+
+- **Road tax — every April:** edit `app/src/config/vedRates.ts` from
+  [GOV.UK vehicle tax rates](https://www.gov.uk/vehicle-tax-rate-tables), update `ratesFrom` and `checkedOn`,
+  then run `npm test`.
+- **Finance rules:** `app/src/config/financeRules.ts` (max term, max age at end, APR, deposits).
+- **MOT traffic-light thresholds:** `app/src/config/motRules.ts`.
+- **Clean air zones:** `app/src/config/cleanAirZones.ts`.
+
+## How it's built
 
 | Path | What |
 | --- | --- |
-| `app/` | Source: `index.html` template, `src/`, `public/` |
-| `app/src/config/financeRules.ts` | **All rules**: max term, max car age at end, minimum term, APR, deposit range, default registration date |
-| `app/src/finance/calculator.ts` | Pure maths (no React): car age, available term, amortisation, full quote |
-| `app/src/finance/calculator.test.ts` | Unit tests (Vitest) |
-| `app/src/tools/registry.tsx` | List of tools; each entry becomes a tab in the bottom bar |
-| `app/src/tools/carFinance/` | The car finance calculator screen |
+| `app/src/domain/` | Plain logic, no UI (reusable in a native app): `finance/`, `mot/`, `tax/`, `cleanAir/`, `vehicle/`, `evaluate.ts` |
+| `app/src/config/` | All rules and rates, one file each |
+| `app/src/tools/check/` | Check tab |
+| `app/src/tools/shortlist/` | Shortlist tab, add by link, compare, share entry point (`share.ts`) |
+| `app/src/api/client.ts` | Calls the server functions (sends the passcode, never API keys) |
+| `app/src/storage/` | Shortlist (IndexedDB, on the device) and passcode (localStorage) |
+| `server/` | Server code: DVLA, MOT (token cache), link preview, passcode, rate limits, mock data |
+| `netlify/functions/` | Thin Netlify Function wrappers: `/api/vehicle`, `/api/mot`, `/api/link-preview` |
+| `server/devApi.ts` | Serves the same functions in `npm run dev` |
 
-## Adding a tool
+### Rules implemented
 
-1. Create `app/src/tools/<name>/<Name>.tsx` exporting a component.
-2. Add an entry to `tools` in `app/src/tools/registry.tsx` (id, label, title, icon, component).
+- **Car age** counts from the exact registration date (MOT data), or DVLA's month with the 1st assumed
+  ("approx"), or a manual date. Whole months at the agreement start (default today, editable).
+- **Max term** = lower of 60 and (96 − age in months). Under 12 → not eligible. You can pick a shorter term.
+- **Payment**: monthly rate = (1 + 9.9%)^(1/12) − 1, standard amortisation, no fees.
+- **MOT light**: red (no valid MOT, major/dangerous defects in the latest test, structural corrosion,
+  mileage going backwards), amber (expires within 60 days, a fail in the last 2 tests, the same advisory
+  in consecutive MOTs, more than 5 advisories, under 2,000 or over 20,000 miles a year, plain corrosion
+  advisory), green otherwise. Under 3 years with no test → "No MOT due yet".
+- **Road tax**: pre-March 2001 by engine size; March 2001 – March 2017 by CO2 band; April 2017 onwards
+  standard rate plus the expensive car supplement in years 2–6 (£40,000 threshold, £50,000 for electric;
+  electric cars registered before 1 April 2025 exempt). DVLA's `artEndDate` flags likely cases.
+- **Clean air**: Euro 4 petrol / Euro 6 diesel (date-based guess when DVLA has no Euro status), always
+  labelled "likely" with links to the official checkers.
 
-## Calculation notes
+### Security
 
-- Car age = whole months from the 1st of the registration month to today.
-- Available term = min(60, 96 − age). Below 12 months → not eligible.
-- Monthly rate = (1 + APR)^(1/12) − 1; payment = P·r / (1 − (1 + r)^−n).
-- Total interest = payments × term − amount financed. Total payable = payments × term + deposit.
+- API keys are read only from environment variables on the server and never sent to the browser or logged.
+- Every function requires the passcode (`x-app-passcode` header). Wrong passcodes lock out for 15 minutes
+  after 8 tries. Each device is limited to 40 requests per 10 minutes, and DVLA/DVSA calls are capped at
+  600 a day (Netlify Blobs counters on Netlify; memory locally).
+- Registrations go in request bodies, not URLs, and are never logged.
+- The link preview only fetches public http(s) pages (no private or local addresses).
 
-## Installing on iPhone
+### Native app later (Capacitor)
 
-Open https://insaneinthewaynebrain.github.io/hp-calc/ in Safari → Share → **Add to Home Screen**.
-Icons are generated from `app/public/icon.svg` with `npm run icons` (needs Playwright).
+- The logic in `app/src/domain/` has no browser or React dependencies.
+- Set `VITE_API_BASE=https://<your-netlify-site>` when building the native app so it calls the Netlify functions.
+- Share sheet: an iOS Share Extension should open the app with the shared link — `tools/shortlist/share.ts`
+  (`readSharedLink`) and `AddByLink` (`initialUrl`) already handle it. Today `?share=<url>` does the same on the web.
+
+## GitHub Pages copy (calculator only)
+
+https://insaneinthewaynebrain.github.io/hp-calc/ still serves the earlier calculator-only build from the
+repository root. It can't do lookups (no server functions). Once Netlify is live, delete the root build files
+(`index.html`, `assets/`, `sw.js`, `workbox-*.js`, `manifest.webmanifest`, icons, `.nojekyll`) and turn off Pages.
+`npm run deploy` would refresh that copy with the new app (lookups then show a "not available here" message).
 
 ## Screen sizes
 
-The layout adapts automatically (all in `app/src/styles.css`, no device detection), and switches live
-when a phone is rotated, folded or unfolded:
-
-- **Under 360px wide** (small or outer screens): tighter spacing.
-- **Phones**: single column.
-- **680px and wider** (unfolded foldables, tablets, landscape): two columns, payment on the left.
-- **Landscape phones**: two columns with a compact header.
-- **Foldables that report a hinge** (Viewport Segments API): one column per screen half, kept off the hinge.
-
-The monthly payment's font size scales to the card width so long figures always fit on one line.
+The layout adapts automatically (no device detection) and switches live when a phone is rotated, folded or
+unfolded: compact under 360px, single column on phones, two columns from 680px and in landscape, and one
+column per screen half on foldables that report a hinge.

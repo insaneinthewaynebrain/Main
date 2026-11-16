@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["vite/client", "vite-plugin-pwa/client"]
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"]
   },
-  "include": ["app/src", "vite.config.ts", "scripts"]
+  "include": ["app/src", "server", "netlify", "vite.config.ts", "scripts"]
 }

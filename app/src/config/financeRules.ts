@@ -9,6 +9,8 @@ export interface FinanceRules {
   apr: number;
   deposit: { min: number; max: number; step: number; default: number };
   defaultRegistration: { month: number; year: number };
+  /** APR is fixed; there are no fees. */
+  fees: number;
   registrationYearsBack: number;
 }
 
@@ -31,9 +33,12 @@ export const financeRules: FinanceRules = {
   /** Deposit dropdown: from, to and step in £, plus the default selection. */
   deposit: { min: 0, max: 10_000, step: 500, default: 1_000 },
 
-  /** Default registration date (month is 1–12). Treated as the 1st of the month. */
+  /** No arrangement or completion fees. */
+  fees: 0,
+
+  /** Default for manual registration entry (month is 1–12). Without a day, the 1st is assumed. */
   defaultRegistration: { month: 10, year: 2023 },
 
-  /** How many years back the registration year dropdown goes. */
-  registrationYearsBack: 12,
+  /** How many years back the manual registration year dropdown goes. */
+  registrationYearsBack: 30,
 };

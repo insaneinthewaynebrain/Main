@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
-import CarFinanceCalculator from './carFinance/CarFinanceCalculator';
-import { CalculatorIcon } from '../components/icons';
+import CheckScreen from './check/CheckScreen';
+import ShortlistScreen from './shortlist/ShortlistScreen';
+import { CalculatorIcon, ShortlistIcon } from '../components/icons';
 
 export interface Tool {
   id: string;
@@ -17,11 +18,6 @@ export interface Tool {
  * and appending an entry here — it gets a tab automatically.
  */
 export const tools: Tool[] = [
-  {
-    id: 'car-finance',
-    label: 'Finance',
-    title: 'Car finance',
-    Icon: CalculatorIcon,
-    Component: CarFinanceCalculator,
-  },
+  { id: 'check', label: 'Check', title: 'Car finance', Icon: CalculatorIcon, Component: CheckScreen },
+  { id: 'shortlist', label: 'Shortlist', title: 'Shortlist', Icon: ShortlistIcon, Component: ShortlistScreen },
 ];

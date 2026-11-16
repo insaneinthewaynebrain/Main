@@ -4,3 +4,9 @@ dev-dist
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+.netlify
