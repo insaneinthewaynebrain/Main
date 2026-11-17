@@ -85,6 +85,21 @@ server functions are (`netlify/functions`). Steps, one at a time:
 `.env.example` lists the same names. To try real lookups on a computer, copy it to `.env` and fill it in —
 `.env` is git-ignored and never committed.
 
+### Checking the live site
+
+- Open `https://<your-site>.netlify.app/api/health` in Safari. You should see `"functions": "running"`,
+  `"mode": "live"` and `"ready": true`. `missing` lists any setting names that aren't set (names only —
+  values are never shown).
+- If instead you get a Netlify login page, the site has **Visitor access → Site protection** switched on.
+  That login wall blocks the app's lookups (and the home-screen app can't sign in to it). Turn it off in
+  Netlify under **Site configuration → Access & security → Visitor access**; lookups are still protected
+  by `APP_PASSCODE`.
+- If `/api/health` shows "Page not found", the functions weren't deployed — check the deploy's
+  **Functions** list in Netlify shows `vehicle`, `mot`, `link-preview` and `health`.
+
+The app's error messages say which of these it is; "isn't available on this copy" only appears on the
+GitHub Pages copy.
+
 ## Keeping it up to date
 
 - **Road tax — every April:** edit `app/src/config/vedRates.ts` from

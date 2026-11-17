@@ -7,10 +7,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import { loadEnv, type Plugin, type ViteDevServer } from 'vite';
 
-const ROUTES: Record<string, 'handleVehicle' | 'handleMot' | 'handleLinkPreview'> = {
+const ROUTES: Record<string, 'handleVehicle' | 'handleMot' | 'handleLinkPreview' | 'handleHealth'> = {
   '/api/vehicle': 'handleVehicle',
   '/api/mot': 'handleMot',
   '/api/link-preview': 'handleLinkPreview',
+  '/api/health': 'handleHealth',
 };
 
 export function devApi(projectRoot: string): Plugin {

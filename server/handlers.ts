@@ -3,7 +3,7 @@
  * Each one: guard (passcode + rate limit) → validate → call API or mock → JSON.
  */
 import { isValidRegistration, normaliseRegistration } from '../app/src/domain/vehicle/registration';
-import { isMockMode } from './config';
+import { ENV, isMockMode, missingEnv } from './config';
 import { fetchDvlaVehicle } from './dvla';
 import { guard } from './guard';
 import { ApiFailure, errorResponse, json, logFailure, readJsonBody } from './http';
@@ -71,5 +71,32 @@ export function handleLinkPreview(req: Request, ctx: RequestContext): Promise<Re
       return json({ preview: mockLinkPreview(url) });
     }
     return json({ preview: await fetchLinkPreview(url) });
+  });
+}
+
+/**
+ * GET /api/health — open it in a browser to confirm the functions are deployed.
+ * Reports only whether each setting is present (yes/no), never any values,
+ * and doesn't need the passcode or call DVLA/DVSA.
+ */
+export function handleHealth(req: Request): Promise<Response> {
+  return run(async () => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') throw new ApiFailure('BAD_REQUEST', 'Use GET.');
+    const has = (name: string) => missingEnv([name]).length === 0;
+    const motVars = [ENV.motClientId, ENV.motClientSecret, ENV.motApiKey, ENV.motScope, ENV.motTokenUrl];
+    const settings = {
+      APP_PASSCODE: has(ENV.passcode),
+      DVLA_API_KEY: has(ENV.dvlaKey),
+      ...Object.fromEntries(motVars.map((n) => [n, has(n)])),
+    };
+    const mock = isMockMode();
+    const ready = mock || Object.values(settings).every(Boolean);
+    return json({
+      functions: 'running',
+      mode: mock ? 'mock (sample cars)' : 'live',
+      ready,
+      settingsPresent: settings,
+      missing: Object.entries(settings).filter(([, v]) => !v).map(([k]) => k),
+    });
   });
 }

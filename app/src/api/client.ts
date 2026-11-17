@@ -7,6 +7,7 @@
  */
 import type { ApiError, DvlaVehicle, LinkPreview, MotVehicle } from '../domain/vehicle/types';
 import { getPasscode } from '../storage/passcode';
+import { explainUnexpectedReply } from './unexpectedReply';
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
 
@@ -23,18 +24,17 @@ async function post<T>(path: string, body: unknown, pick: (json: Record<string, 
   } catch {
     return { ok: false, error: { code: 'UNAVAILABLE', message: "Can't reach the lookup service — are you offline?" } };
   }
+  const text = await res.text().catch(() => '');
   let json: Record<string, unknown> | undefined;
   try {
-    json = (await res.json()) as Record<string, unknown>;
+    const parsed = JSON.parse(text);
+    json = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : undefined;
   } catch {
     json = undefined;
   }
   if (!json) {
-    // e.g. the GitHub Pages copy, which has no server functions.
-    return {
-      ok: false,
-      error: { code: 'NOT_CONFIGURED', message: "Registration lookup isn't available on this copy of the app. Enter the registration date manually below." },
-    };
+    // Not our functions answering: GitHub Pages, Netlify's login wall, a missing function…
+    return { ok: false, error: explainUnexpectedReply(res.status, text.slice(0, 2000), window.location.hostname) };
   }
   if (!res.ok || json.error) {
     const err = json.error as ApiError | undefined;

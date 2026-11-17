@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { serverLimits } from './config';
 import { guard, PASSCODE_HEADER } from './guard';
-import { handleMot, handleVehicle, handleLinkPreview } from './handlers';
+import { handleHealth, handleMot, handleVehicle, handleLinkPreview } from './handlers';
 import { ApiFailure } from './http';
 import { assertPublicUrl, isPrivateAddress, parsePreviewTags } from './linkPreview';
 import { clearTokenCache, fetchMotHistory, getAccessToken, normaliseMot } from './mot';
@@ -239,5 +239,26 @@ describe('link preview safety', () => {
       imageUrl: 'https://cars.example/img/car.jpg',
       siteName: 'AutoSite',
     });
+  });
+});
+
+describe('health check', () => {
+  it('reports which settings are present, never their values', async () => {
+    process.env.APP_PASSCODE = 'super-secret-passcode';
+    process.env.DVLA_API_KEY = 'dvla-secret-value';
+    const res = await handleHealth(new Request('http://x/api/health'));
+    const text = await res.text();
+    expect(res.status).toBe(200);
+    expect(text).not.toContain('super-secret-passcode');
+    expect(text).not.toContain('dvla-secret-value');
+    const body = JSON.parse(text);
+    expect(body).toMatchObject({ functions: 'running', mode: 'live', ready: false });
+    expect(body.settingsPresent).toMatchObject({ APP_PASSCODE: true, DVLA_API_KEY: true, MOT_CLIENT_ID: false });
+    expect(body.missing).toEqual(['MOT_CLIENT_ID', 'MOT_CLIENT_SECRET', 'MOT_API_KEY', 'MOT_SCOPE_URL', 'MOT_TOKEN_URL']);
+  });
+  it('is ready when everything is set', async () => {
+    for (const n of ENV_NAMES) if (n !== 'MOCK_MODE') process.env[n] = 'x';
+    const body = await (await handleHealth(new Request('http://x/api/health'))).json();
+    expect(body).toMatchObject({ ready: true, missing: [] });
   });
 });
